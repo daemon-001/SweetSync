@@ -85,10 +85,7 @@ SweetSync follows modern Android development best practices with a clean, mainta
 ## Screenshots
 
 <div align="center">
-  <img src="screenshots/home.png" alt="Home Screen" width="200">
-  <img src="screenshots/add-reading.png" alt="Add Reading Screen" width="200">
-  <img src="screenshots/charts.png" alt="Charts Screen" width="200">
-  <img src="screenshots/auth.png" alt="Authentication Screen" width="200">
+  <img width="3697" height="1413" alt="thumbnail" src="https://github.com/user-attachments/assets/6ecd0245-8b75-479a-9ad9-4a44e48deec0" />
 </div>
 
 ## Getting Started
