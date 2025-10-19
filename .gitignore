@@ -13,6 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+release-keystore.jks
 .DO_NOT_SYNC
 
 app/google-services.json

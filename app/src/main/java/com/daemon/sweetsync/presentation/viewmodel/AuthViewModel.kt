@@ -313,4 +313,40 @@ class AuthViewModel @Inject constructor(
             errorMessage = null
         )
     }
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+
+            authRepository.signInWithGoogle(idToken)
+                .onSuccess {
+                    // Save login state locally
+                    saveLoginState(true)
+
+                    // Set authenticated state immediately
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isAuthenticated = true,
+                        errorMessage = null
+                    )
+
+                    // Try to get user profile in background
+                    viewModelScope.launch {
+                        authRepository.getUserProfile()
+                            .onSuccess { profile ->
+                                profile?.let {
+                                    saveUserInfo(it)
+                                    _uiState.value = _uiState.value.copy(userProfile = it)
+                                }
+                            }
+                    }
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = exception.message ?: "Google sign-in failed"
+                    )
+                }
+        }
+    }
 }

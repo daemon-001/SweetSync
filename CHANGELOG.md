@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2025-10-20 (02:26 AM IST) - Google Sign-In Integration
+
+### ✨ Added
+
+#### Authentication
+- **Google Sign-In** support as an alternative authentication method
+- One-tap Google authentication flow
+- Automatic user profile creation for Google sign-in users
+- Seamless integration with existing Firebase Authentication
+
+#### New Dependencies
+- `com.google.android.gms:play-services-auth:21.2.0` - Google Sign-In SDK
+
+#### Files Modified
+- `AuthRepository.kt`
+  - Added `signInWithGoogle(idToken: String)` method
+  - Automatic Firestore profile creation for new Google users
+  - Google credential authentication with Firebase
+  
+- `AuthViewModel.kt`
+  - Added `signInWithGoogle(idToken: String)` method
+  - State management for Google sign-in flow
+  - Session persistence for Google-authenticated users
+
+- `AuthScreen.kt`
+  - Added "Continue with Google" button with white design
+  - Google Sign-In activity result launcher
+  - "OR" divider between email and Google sign-in options
+  - Material Design 3 styled Google button
+
+#### Build & Configuration
+- `app/build.gradle.kts`
+  - Added Google Play Services Auth dependency
+  - Configured release build signing with keystore
+  - Created release signing configuration
+
+#### Security & Keys
+- Created production release keystore (`release-keystore.jks`)
+- SHA-1 fingerprint generated for Firebase Console
+- Release build signing configured for Google Sign-In
+
+### 🔄 Changed
+
+#### UI/UX Improvements
+- Enhanced authentication screen with modern Google sign-in button
+- Added visual separator between authentication methods
+- Improved button hierarchy and spacing
+
+#### Build Configuration
+- Updated release build type with proper signing config
+- Keystore management for production releases
+
+### 🔒 Security
+
+#### Release Signing
+- Generated release keystore with RSA 2048-bit encryption
+- Validity: 10,000 days (until March 2053)
+- SHA-1 fingerprint: `2D:4F:5C:69:32:FF:43:60:74:AD:E0:37:1A:09:21:48:F1:82:EA:31`
+- Keystore protected in `.gitignore`
+
+#### Firebase Configuration
+- SHA-1 fingerprint ready for Firebase Console registration
+- Google Sign-In OAuth 2.0 client configuration
+- Secure token-based authentication flow
+
+### 📋 Setup Requirements
+
+To use Google Sign-In, you need to:
+1. Add the SHA-1 fingerprint to Firebase Console
+2. Enable Google Sign-In in Firebase Authentication
+3. Download updated `google-services.json`
+4. For Play Store releases, add Play Console SHA-1 to Firebase
+
+### 🎯 User Experience
+
+Users can now sign in using:
+- **Email/Password** (existing method)
+- **Google Account** (new method - one-tap sign-in)
+
+Both methods create and sync user profiles in Firestore automatically.
+
+---
+
 ## [2.0.0] - 2025-10-19 - Firebase Migration
 
 ### 🔥 Major Changes
@@ -349,6 +432,7 @@ Complete migration from Supabase to Firebase backend infrastructure.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 2.0.1 | 2025-10-20 | Google Sign-In integration with release signing |
 | 2.0.0 | 2025-10-19 | Firebase Migration - Complete backend rewrite |
 | 1.0.0 | 2025-06-09 | Initial release with Supabase backend |
 

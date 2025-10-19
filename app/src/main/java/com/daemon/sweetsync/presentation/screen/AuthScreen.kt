@@ -1,6 +1,11 @@
 package com.daemon.sweetsync.presentation.screen
 
+import android.app.Activity
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,8 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.daemon.sweetsync.R
 import com.daemon.sweetsync.presentation.viewmodel.AuthViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
 // Define colors matching the home screen theme
 object AuthScreenColors {
@@ -55,6 +65,25 @@ fun AuthScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var showFullError by remember { mutableStateOf(false) }
     val systemUiController = rememberSystemUiController()
+    val context = LocalContext.current
+    
+    // Google Sign-In launcher
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                account?.idToken?.let { idToken ->
+                    viewModel.signInWithGoogle(idToken)
+                }
+            } catch (e: ApiException) {
+                Log.e("AuthScreen", "Google sign-in failed", e)
+                // Handle error silently or show error to user
+            }
+        }
+    }
 
     SideEffect {
         systemUiController.setSystemBarsColor(
@@ -365,6 +394,71 @@ fun AuthScreen(
                                 if (isSignUp) "Sign Up" else "Sign In",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // OR Divider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = AuthScreenColors.TextSecondary.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "OR",
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = AuthScreenColors.TextSecondary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = AuthScreenColors.TextSecondary.copy(alpha = 0.3f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Google Sign-In Button
+                    OutlinedButton(
+                        onClick = {
+                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestIdToken(context.getString(R.string.default_web_client_id))
+                                .requestEmail()
+                                .build()
+                            val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                        },
+                        enabled = !uiState.isLoading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color.White.copy(alpha = 0.5f)
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AuthScreenColors.TextSecondary.copy(alpha = 0.3f)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🔍",
+                                fontSize = 20.sp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Continue with Google",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }

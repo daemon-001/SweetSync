@@ -1,7 +1,10 @@
 package com.daemon.sweetsync.data.repository
 
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -121,6 +124,42 @@ class AuthRepository @Inject constructor(
      * Get current user ID
      */
     fun getCurrentUserId(): String? = getCurrentUser()?.uid
+
+    /**
+     * Sign in with Google credential
+     */
+    suspend fun signInWithGoogle(idToken: String): Result<Unit> {
+        return try {
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val authResult = auth.signInWithCredential(credential).await()
+            val user = authResult.user ?: throw Exception("Google sign-in failed")
+            
+            // Check if user profile exists in Firestore
+            val profileDoc = firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
+                .document(user.uid)
+                .get()
+                .await()
+            
+            // If profile doesn't exist, create one
+            if (!profileDoc.exists()) {
+                val userProfile = UserProfile(
+                    id = user.uid,
+                    email = user.email ?: "",
+                    name = user.displayName ?: user.email?.substringBefore("@") ?: "User",
+                    created_at = System.currentTimeMillis()
+                )
+                
+                firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
+                    .document(user.uid)
+                    .set(userProfile)
+                    .await()
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     /**
      * Send password reset email
