@@ -1,213 +1,104 @@
 package com.daemon.sweetsync.data.repository
 
-import io.github.jan.supabase.gotrue.auth
-import io.github.jan.supabase.gotrue.providers.builtin.Email
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import kotlinx.coroutines.delay
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-
 @Serializable
 data class UserProfile(
-    val id: String,
-    val email: String,
-    val name: String,
-    val created_at: String? = null
-)
+    val id: String = "",
+    val email: String = "",
+    val name: String = "",
+    val created_at: Long = 0L
+) {
+    // No-arg constructor for Firebase
+    constructor() : this("", "", "", 0L)
+}
 
 @Singleton
 class AuthRepository @Inject constructor(
-    private val supabaseClient: SupabaseClient // This should be your existing SupabaseClient wrapper class
+    private val firebaseClient: FirebaseClient
 ) {
-    // Store the name temporarily during signup process
-    private var pendingUserName: String? = null
-    private var pendingUserEmail: String? = null
+    private val auth: FirebaseAuth = firebaseClient.auth
+    private val firestore: FirebaseFirestore = firebaseClient.firestore
 
+    /**
+     * Sign up a new user with email, password, and name
+     */
     suspend fun signUp(email: String, password: String, name: String): Result<Unit> {
         return try {
-            println("DEBUG: Starting signup with name: '$name'") // Debug log
+            // Create user with email and password
+            val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+            val user = authResult.user ?: throw Exception("User creation failed")
 
-            // Store name temporarily for use during signin
-            pendingUserName = name
-            pendingUserEmail = email
+            // Update user profile with display name
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build()
+            user.updateProfile(profileUpdates).await()
 
-            // Sign up the user with Supabase Auth
-            supabaseClient.client.auth.signUpWith(Email) {
-                this.email = email
-                this.password = password
-                // Store the name in user metadata using JsonObject
-                data = buildJsonObject {
-                    put("full_name", name)
-                    put("name", name) // Add this as backup
-                }
-            }
+            // Create user profile in Firestore
+            val userProfile = UserProfile(
+                id = user.uid,
+                email = email,
+                name = name,
+                created_at = System.currentTimeMillis()
+            )
 
-            println("DEBUG: Signup completed, name stored temporarily for signin")
+            firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
+                .document(user.uid)
+                .set(userProfile)
+                .await()
+
             Result.success(Unit)
-
         } catch (e: Exception) {
-            println("DEBUG: Signup failed with exception: ${e.message}")
-            e.printStackTrace()
-
-            // Clear temporary storage on failure
-            pendingUserName = null
-            pendingUserEmail = null
-
-            // Check if this might be a successful signup with email verification required
-            val errorMessage = e.message?.lowercase() ?: ""
-            if (errorMessage.contains("email") ||
-                errorMessage.contains("confirmation") ||
-                errorMessage.contains("verify") ||
-                errorMessage.contains("check your email")) {
-                // Re-store the name since it was a successful signup
-                pendingUserName = name
-                pendingUserEmail = email
-                Result.success(Unit)
-            } else {
-                Result.failure(e)
-            }
+            Result.failure(e)
         }
     }
 
+    /**
+     * Sign in an existing user
+     */
     suspend fun signIn(email: String, password: String): Result<Unit> {
         return try {
-            supabaseClient.client.auth.signInWith(Email) {
-                this.email = email
-                this.password = password
-            }
-
-            // After successful sign-in, check if profile exists, if not create it
-            val currentUser = getCurrentUser()
-            if (currentUser != null) {
-                // Check if profile already exists
-                val existingProfiles = supabaseClient.client.from("user_profiles")
-                    .select(Columns.ALL) {
-                        filter {
-                            eq("id", currentUser.id)
-                        }
-                    }
-                    .decodeList<UserProfile>()
-
-                if (existingProfiles.isEmpty()) {
-                    // Profile doesn't exist, create it
-                    val userName = determineUserName(currentUser, email)
-
-                    println("DEBUG: Creating profile with name: '$userName'")
-
-                    try {
-                        supabaseClient.client.from("user_profiles").insert(
-                            mapOf(
-                                "id" to currentUser.id,
-                                "email" to (currentUser.email ?: email),
-                                "name" to userName
-                            )
-                        )
-                        println("DEBUG: Profile created successfully with name: '$userName'")
-
-                        // Clear temporary storage after successful profile creation
-                        clearPendingUserData()
-
-                    } catch (profileException: Exception) {
-                        println("DEBUG: Profile creation failed: ${profileException.message}")
-                        profileException.printStackTrace()
-                    }
-                } else {
-                    // Profile exists, clear pending data
-                    clearPendingUserData()
-                    println("DEBUG: Profile already exists, no need to create")
-                }
-            }
-
+            auth.signInWithEmailAndPassword(email, password).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    private fun determineUserName(currentUser: io.github.jan.supabase.gotrue.user.UserInfo, email: String): String {
-        // Priority 1: Use pending name from recent signup
-        if (pendingUserName != null && (pendingUserEmail == email || pendingUserEmail == currentUser.email)) {
-            println("DEBUG: Using pending name from signup: '$pendingUserName'")
-            return pendingUserName!!
-        }
-
-        // Priority 2: Try to extract from metadata
-        val extractedName = extractNameFromMetadata(currentUser)
-        if (extractedName.isNotBlank()) {
-            println("DEBUG: Using name from metadata: '$extractedName'")
-            return extractedName
-        }
-
-        // Priority 3: Use email prefix as fallback
-        val fallbackName = email.substringBefore("@").takeIf { it.isNotBlank() } ?: "User"
-        println("DEBUG: Using fallback name: '$fallbackName'")
-        return fallbackName
-    }
-
-    private fun extractNameFromMetadata(currentUser: io.github.jan.supabase.gotrue.user.UserInfo): String {
-        return try {
-            val metadata = currentUser.userMetadata
-            println("DEBUG: Available metadata: $metadata")
-
-            // Try different possible keys
-            val possibleKeys = listOf("full_name", "name", "display_name", "fullName")
-
-            for (key in possibleKeys) {
-                metadata?.get(key)?.let { nameValue ->
-                    val cleanName = nameValue.toString()
-                        .trim()
-                        .replace("\"", "")
-                        .replace("'", "")
-
-                    if (cleanName.isNotBlank() && cleanName != "null") {
-                        println("DEBUG: Found name '$cleanName' using key '$key'")
-                        return cleanName
-                    }
-                }
-            }
-
-            ""
-        } catch (e: Exception) {
-            println("DEBUG: Error extracting name from metadata: ${e.message}")
-            ""
-        }
-    }
-
-    private fun clearPendingUserData() {
-        pendingUserName = null
-        pendingUserEmail = null
-    }
-
+    /**
+     * Sign out the current user
+     */
     suspend fun signOut(): Result<Unit> {
         return try {
-            // Clear any pending data
-            clearPendingUserData()
-
-            supabaseClient.client.auth.signOut()
+            auth.signOut()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
+    /**
+     * Get the user profile from Firestore
+     */
     suspend fun getUserProfile(): Result<UserProfile?> {
         return try {
             val currentUser = getCurrentUser()
             if (currentUser != null) {
-                val profiles = supabaseClient.client.from("user_profiles")
-                    .select(Columns.ALL) {
-                        filter {
-                            eq("id", currentUser.id)
-                        }
-                    }
-                    .decodeList<UserProfile>()
+                val document = firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
+                    .document(currentUser.uid)
+                    .get()
+                    .await()
 
-                Result.success(profiles.firstOrNull())
+                val profile = document.toObject(UserProfile::class.java)
+                Result.success(profile)
             } else {
                 Result.success(null)
             }
@@ -216,7 +107,55 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    fun getCurrentUser() = supabaseClient.client.auth.currentUserOrNull()
+    /**
+     * Get the current Firebase user
+     */
+    fun getCurrentUser(): FirebaseUser? = auth.currentUser
 
-    fun isUserLoggedIn() = getCurrentUser() != null
+    /**
+     * Check if user is logged in
+     */
+    fun isUserLoggedIn(): Boolean = getCurrentUser() != null
+
+    /**
+     * Get current user ID
+     */
+    fun getCurrentUserId(): String? = getCurrentUser()?.uid
+
+    /**
+     * Send password reset email
+     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Update user profile name
+     */
+    suspend fun updateUserName(newName: String): Result<Unit> {
+        return try {
+            val currentUser = getCurrentUser() ?: throw Exception("User not logged in")
+
+            // Update Firebase Auth profile
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(newName)
+                .build()
+            currentUser.updateProfile(profileUpdates).await()
+
+            // Update Firestore profile
+            firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
+                .document(currentUser.uid)
+                .update("name", newName)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

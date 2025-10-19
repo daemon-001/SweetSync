@@ -28,6 +28,7 @@ import com.daemon.sweetsync.presentation.viewmodel.BloodSugarViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.daemon.sweetsync.utils.DateTimeUtils
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.BorderStroke
@@ -675,7 +676,7 @@ private fun EmptyStateCard(onAddClick: () -> Unit) {
 
 @Composable
 fun EnhancedReadingCard(reading: BloodSugarReading) {
-    val (backgroundColor, textColor) = getMealContextColors(reading.meal_context)
+    val (backgroundColor, textColor) = getMealContextColors(reading.getMealContextEnum())
     val glucoseColor = when {
         reading.glucose_level < 70 -> AppColors.SugarLow
         reading.glucose_level > 180 -> AppColors.SugarHigh
@@ -723,7 +724,7 @@ fun EnhancedReadingCard(reading: BloodSugarReading) {
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
-                        text = reading.meal_context.name.replace("_", " "),
+                        text = reading.meal_context.replace("_", " "),
                         style = MaterialTheme.typography.bodySmall,
                         color = textColor,
                         fontWeight = FontWeight.Medium,
@@ -746,12 +747,7 @@ fun EnhancedReadingCard(reading: BloodSugarReading) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = try {
-                        OffsetDateTime.parse(reading.timestamp)
-                            .format(DateTimeFormatter.ofPattern("dd MMM, yyyy - hh:mm a"))
-                    } catch (e: Exception) {
-                        reading.timestamp
-                    },
+                    text = DateTimeUtils.formatDateTime(reading.timestamp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = textColor.copy(alpha = 0.8f)
                 )

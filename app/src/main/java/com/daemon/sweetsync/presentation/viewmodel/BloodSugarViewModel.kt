@@ -50,9 +50,9 @@ class BloodSugarViewModel @Inject constructor(
             val reading = BloodSugarReading(
                 user_id = "", // Will be set in repository
                 glucose_level = glucoseLevel,
-                timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                timestamp = System.currentTimeMillis(), // Firebase uses milliseconds (Long)
                 notes = notes.takeIf { it.isNotBlank() },
-                meal_context = mealContext
+                meal_context = mealContext.name // Firebase stores enum as String
             )
 
             val result = bloodSugarRepository.insertReading(reading)

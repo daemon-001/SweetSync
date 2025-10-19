@@ -111,7 +111,7 @@ class AuthViewModel @Inject constructor(
                             id = "",
                             email = email,
                             name = getSavedUserName() ?: email.substringBefore("@"),
-                            created_at = ""
+                            created_at = System.currentTimeMillis()
                         )
                         saveUserInfo(basicProfile)
                         _uiState.value = _uiState.value.copy(userProfile = basicProfile)
@@ -123,7 +123,7 @@ class AuthViewModel @Inject constructor(
                         id = "",
                         email = email,
                         name = getSavedUserName() ?: email.substringBefore("@"),
-                        created_at = ""
+                        created_at = System.currentTimeMillis()
                     )
                     saveUserInfo(basicProfile)
                     _uiState.value = _uiState.value.copy(userProfile = basicProfile)
@@ -267,7 +267,7 @@ class AuthViewModel @Inject constructor(
                     id = id ?: "",
                     email = email,
                     name = name ?: email.substringBefore("@"),
-                    created_at = ""
+                    created_at = 0L // Default timestamp for cached profiles
                 )
             } else null
         } catch (e: Exception) {

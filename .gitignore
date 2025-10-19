@@ -14,3 +14,12 @@
 .cxx
 local.properties
 .DO_NOT_SYNC
+
+app/google-services.json
+firebase_setup
+serviceAccountKey.json
+*.jks
+*.keystore
+.env
+.env.local
+secrets.properties

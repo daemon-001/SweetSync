@@ -28,7 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.daemon.sweetsync.data.model.BloodSugarReading
 import com.daemon.sweetsync.presentation.viewmodel.BloodSugarUiState
 import com.daemon.sweetsync.presentation.viewmodel.BloodSugarViewModel
+import com.daemon.sweetsync.utils.DateTimeUtils
 import com.github.mikephil.charting.charts.LineChart
+import java.util.Date
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.LineData
@@ -998,25 +1000,22 @@ data class Statistics(
     val daysSinceLastReading: Long = 0
 )
 
-fun parseDateTime(timestamp: String): LocalDateTime {
+fun parseDateTime(timestamp: Long): LocalDateTime {
     return try {
-        LocalDateTime.parse(timestamp)
+        val date = Date(timestamp)
+        val calendar = java.util.Calendar.getInstance()
+        calendar.time = date
+        LocalDateTime.of(
+            calendar.get(java.util.Calendar.YEAR),
+            calendar.get(java.util.Calendar.MONTH) + 1,
+            calendar.get(java.util.Calendar.DAY_OF_MONTH),
+            calendar.get(java.util.Calendar.HOUR_OF_DAY),
+            calendar.get(java.util.Calendar.MINUTE),
+            calendar.get(java.util.Calendar.SECOND)
+        )
     } catch (e: Exception) {
-        try {
-            LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        } catch (e2: Exception) {
-            try {
-                // Try common formats
-                LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            } catch (e3: Exception) {
-                try {
-                    LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-                } catch (e4: Exception) {
-                    println("Failed to parse timestamp: $timestamp")
-                    LocalDateTime.MIN
-                }
-            }
-        }
+        println("Failed to parse timestamp: $timestamp")
+        LocalDateTime.MIN
     }
 }
 
@@ -1055,15 +1054,10 @@ fun processDataForChart(readings: List<BloodSugarReading>, period: ChartPeriod):
 
             val labels = last7.mapIndexed { idx, reading ->
                 try {
-                    val dt = LocalDateTime.parse(reading.timestamp)
+                    val dt = parseDateTime(reading.timestamp)
                     "Record ${idx + 1}\n${dt.format(DateTimeFormatter.ofPattern("MMM dd"))}"
                 } catch (e: Exception) {
-                    try {
-                        val dt = LocalDateTime.parse(reading.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                        "Record ${idx + 1}\n${dt.format(DateTimeFormatter.ofPattern("MMM dd"))}"
-                    } catch (e2: Exception) {
-                        "Record ${idx + 1}"
-                    }
+                    "Record ${idx + 1}"
                 }
             }
             val values = last7.map { it.glucose_level.toFloat() }
@@ -1074,26 +1068,8 @@ fun processDataForChart(readings: List<BloodSugarReading>, period: ChartPeriod):
 
         ChartPeriod.MONTH -> {
             // Last 30 days up to latest entry, grouped by day
-            val mostRecent = readings.maxByOrNull { reading ->
-                try {
-                    LocalDateTime.parse(reading.timestamp)
-                } catch (e: Exception) {
-                    try {
-                        LocalDateTime.parse(reading.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                    } catch (e2: Exception) {
-                        LocalDateTime.MIN
-                    }
-                }
-            }
-            val mostRecentDate = try {
-                LocalDateTime.parse(mostRecent?.timestamp ?: "")
-            } catch (e: Exception) {
-                try {
-                    LocalDateTime.parse(mostRecent?.timestamp ?: "", DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                } catch (e2: Exception) {
-                    LocalDateTime.now()
-                }
-            }
+            val mostRecent = readings.maxByOrNull { it.timestamp }
+            val mostRecentDate = mostRecent?.let { parseDateTime(it.timestamp) } ?: LocalDateTime.now()
             val endDate = mostRecentDate.toLocalDate()
             val startDate = endDate.minusDays(29)
 
@@ -1102,21 +1078,16 @@ fun processDataForChart(readings: List<BloodSugarReading>, period: ChartPeriod):
             val values = daysToShow.map { day ->
                 val dayReadings = readings.filter { reading ->
                     try {
-                        val readingDate = LocalDateTime.parse(reading.timestamp).toLocalDate()
+                        val readingDate = parseDateTime(reading.timestamp).toLocalDate()
                         readingDate.isEqual(day)
                     } catch (e: Exception) {
-                        try {
-                            val readingDate = LocalDateTime.parse(reading.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate()
-                            readingDate.isEqual(day)
-                        } catch (e2: Exception) {
-                            false
-                        }
+                        false
                     }
                 }
                 if (dayReadings.isNotEmpty()) {
                     dayReadings.map { it.glucose_level }.average().toFloat()
                 } else {
-                    Float.NaN  // Change from 0f to Float.NaN
+                    Float.NaN
                 }
             }
             println("Last 30 days - Labels: $labels, Values: $values")
@@ -1125,29 +1096,14 @@ fun processDataForChart(readings: List<BloodSugarReading>, period: ChartPeriod):
 
         ChartPeriod.YEAR -> {
             // All entries chronologically ordered
-            val sortedReadings = readings.sortedBy { reading ->
-                try {
-                    LocalDateTime.parse(reading.timestamp)
-                } catch (e: Exception) {
-                    try {
-                        LocalDateTime.parse(reading.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                    } catch (e2: Exception) {
-                        LocalDateTime.MIN
-                    }
-                }
-            }
+            val sortedReadings = readings.sortedBy { it.timestamp }
 
             val labels = sortedReadings.map { reading ->
                 try {
-                    val dt = LocalDateTime.parse(reading.timestamp)
+                    val dt = parseDateTime(reading.timestamp)
                     dt.format(DateTimeFormatter.ofPattern("MMM dd"))
                 } catch (e: Exception) {
-                    try {
-                        val dt = LocalDateTime.parse(reading.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                        dt.format(DateTimeFormatter.ofPattern("MMM dd"))
-                    } catch (e2: Exception) {
-                        "Entry"
-                    }
+                    "Entry"
                 }
             }
             val values = sortedReadings.map { it.glucose_level.toFloat() }

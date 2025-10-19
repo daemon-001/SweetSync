@@ -2,7 +2,7 @@ package com.daemon.sweetsync.di
 
 import com.daemon.sweetsync.data.repository.AuthRepository
 import com.daemon.sweetsync.data.repository.BloodSugarRepository
-import com.daemon.sweetsync.data.repository.SupabaseClient
+import com.daemon.sweetsync.data.repository.FirebaseClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,22 +15,22 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideSupabaseClient(): SupabaseClient {
-        return SupabaseClient()
+    fun provideFirebaseClient(): FirebaseClient {
+        return FirebaseClient()
     }
 
     @Provides
     @Singleton
-    fun provideAuthRepository(supabaseClient: SupabaseClient): AuthRepository {
-        return AuthRepository(supabaseClient)
+    fun provideAuthRepository(firebaseClient: FirebaseClient): AuthRepository {
+        return AuthRepository(firebaseClient)
     }
 
     @Provides
     @Singleton
     fun provideBloodSugarRepository(
-        supabaseClient: SupabaseClient,
+        firebaseClient: FirebaseClient,
         authRepository: AuthRepository
     ): BloodSugarRepository {
-        return BloodSugarRepository(supabaseClient, authRepository)
+        return BloodSugarRepository(firebaseClient, authRepository)
     }
 }

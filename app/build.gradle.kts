@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
     id("kotlinx-serialization")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -83,12 +84,14 @@ dependencies {
     implementation(libs.androidx.media3.common.ktx)
     kapt("com.google.dagger:hilt-compiler:2.48")
 
-    // Supabase
-    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.6.0")
-//    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.6.0")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt:<latest-version>")
-
-    implementation("io.ktor:ktor-client-android:2.3.12")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    
+    // Coroutines support for Firebase
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
     // Charts - MPAndroidChart
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")

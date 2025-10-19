@@ -8,12 +8,14 @@
   [![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
   [![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
   [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/jetpack/compose)
-  [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+  [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 </div>
 
 ## Overview
 
-SweetSync is a modern Android application designed to help users manage their diabetes by tracking blood sugar readings, visualizing health trends, and providing insights through interactive charts and analytics. Built with the latest Android technologies, it offers a seamless experience for monitoring glucose levels and understanding patterns in your health data.
+SweetSync is a modern Android application designed to help users manage their diabetes by tracking blood sugar readings, visualizing health trends, and providing insights through interactive charts and analytics. Built with the latest Android technologies and powered by Firebase, it offers a seamless experience for monitoring glucose levels, real-time data synchronization, and understanding patterns in your health data.
+
+> **Note:** Version 2.0.0 (October 2025) - Complete Firebase migration with enhanced features, better offline support, and real-time data sync!
 
 ## Features
 
@@ -32,11 +34,11 @@ SweetSync is a modern Android application designed to help users manage their di
 - Export capabilities for healthcare providers
 
 ### **Secure Data Management**
-- User authentication with Supabase
-- Cloud-based data synchronization
-- Local offline storage with Room database
-- Row-level security for data privacy
-- Automatic data backup and sync
+- Firebase Authentication for secure user management
+- Cloud Firestore for real-time data synchronization
+- Built-in offline persistence and automatic sync
+- Firestore Security Rules for data privacy
+- Automatic conflict resolution and data backup
 
 ### **Modern UI/UX**
 - Dark theme with custom color palette
@@ -71,16 +73,17 @@ SweetSync follows modern Android development best practices with a clean, mainta
 
 | Category | Technology | Version |
 |----------|------------|---------|
-| **Language** | Kotlin | 1.8+ |
-| **UI Framework** | Jetpack Compose | Latest |
+| **Language** | Kotlin | 2.0.0 |
+| **UI Framework** | Jetpack Compose | BOM 2024.09.03 |
 | **Architecture** | MVVM + Repository | - |
 | **Dependency Injection** | Hilt | 2.48 |
-| **Backend** | Supabase | Latest |
-| **Local Database** | Room | Latest |
+| **Backend** | Firebase | BOM 32.7.0 |
+| **Database** | Cloud Firestore | Latest |
+| **Authentication** | Firebase Auth | Latest |
 | **Navigation** | Navigation Compose | 2.8.2 |
 | **Charts** | MPAndroidChart | 3.1.0 |
 | **Serialization** | Kotlinx Serialization | 1.7.3 |
-| **Build System** | Gradle (Kotlin DSL) | 8.0+ |
+| **Build System** | Gradle (Kotlin DSL) | 8.12.3 |
 
 ## Screenshots
 
@@ -111,92 +114,85 @@ SweetSync follows modern Android development best practices with a clean, mainta
    - Open the project folder
    - Wait for Gradle sync to complete
 
-3. **Configure Supabase**
-   - Create a Supabase project at [supabase.com](https://supabase.com)
-   - Set up authentication (email/password)
-   - Create the database schema (see Database Setup below)
-   - Update configuration in `SupabaseClient.kt`
+3. **Configure Firebase**
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Firebase Authentication (Email/Password)
+   - Create a Cloud Firestore database
+   - Download `google-services.json` and place in `app/` directory
+   - Set up Firestore Security Rules (see Security Setup below)
 
 4. **Build and Run**
    - Connect an Android device or start an emulator
    - Click the "Run" button in Android Studio
    - Or run from command line: `./gradlew assembleDebug`
 
-## 🗄️ Database Setup
+## 🗄️ Firebase Setup
 
-### Supabase Configuration
+### Firebase Configuration
 
-1. **Create Tables**
-   Run the following SQL in your Supabase SQL Editor:
+1. **Create Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Click "Add Project" and follow the wizard
+   - Select your project
 
-   ```sql
-   -- Create user_profiles table
-   CREATE TABLE user_profiles (
-       id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-       email TEXT NOT NULL UNIQUE,
-       name TEXT NOT NULL,
-       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
+2. **Register Android App**
+   - Click Android icon to add Android app
+   - Package name: `com.daemon.sweetsync`
+   - Download `google-services.json`
+   - Place it in `app/` directory
 
-   -- Create meal_context enum type
-   CREATE TYPE meal_context AS ENUM ('BEFORE_MEAL', 'AFTER_MEAL');
+3. **Enable Authentication**
+   - Go to Authentication → Sign-in method
+   - Enable "Email/Password" provider
+   - Save changes
 
-   -- Create blood_sugar_readings table
-   CREATE TABLE blood_sugar_readings (
-       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-       user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-       glucose_level DECIMAL(5,2) NOT NULL CHECK (glucose_level > 0 AND glucose_level < 1000),
-       timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-       notes TEXT,
-       meal_context meal_context NOT NULL,
-       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-   ```
+4. **Create Firestore Database**
+   - Go to Firestore Database
+   - Click "Create database"
+   - Choose production mode
+   - Select your preferred location
 
-2. **Set up Row Level Security (RLS)**
-   ```sql
-   -- Enable RLS
-   ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE blood_sugar_readings ENABLE ROW LEVEL SECURITY;
+5. **Set up Security Rules**
+   Copy the following rules to Firestore → Rules:
 
-   -- Create policies for user_profiles
-   CREATE POLICY "Users can view their own profile" ON user_profiles
-   FOR SELECT USING (auth.uid() = id);
-
-   CREATE POLICY "Users can update their own profile" ON user_profiles
-   FOR UPDATE USING (auth.uid() = id);
-
-   CREATE POLICY "Users can insert their own profile" ON user_profiles
-   FOR INSERT WITH CHECK (auth.uid() = id);
-
-   -- Create policies for blood_sugar_readings
-   CREATE POLICY "Users can view their own readings" ON blood_sugar_readings
-   FOR SELECT USING (auth.uid() = user_id);
-
-   CREATE POLICY "Users can insert their own readings" ON blood_sugar_readings
-   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-   CREATE POLICY "Users can update their own readings" ON blood_sugar_readings
-   FOR UPDATE USING (auth.uid() = user_id);
-
-   CREATE POLICY "Users can delete their own readings" ON blood_sugar_readings
-   FOR DELETE USING (auth.uid() = user_id);
-   ```
-
-3. **Update Configuration**
-   Update the Supabase configuration in `app/src/main/java/com/daemon/sweetsync/data/repository/SupabaseClient.kt`:
-
-   ```kotlin
-   val client = createSupabaseClient(
-       supabaseUrl = "YOUR_SUPABASE_URL",
-       supabaseKey = "YOUR_SUPABASE_ANON_KEY"
-   ) {
-       install(Auth)
-       install(Postgrest)
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       // Helper functions
+       function isAuthenticated() {
+         return request.auth != null;
+       }
+       
+       function isOwner(userId) {
+         return request.auth.uid == userId;
+       }
+       
+       // User profiles
+       match /user_profiles/{userId} {
+         allow read, write: if isAuthenticated() && isOwner(userId);
+       }
+       
+       // Blood sugar readings
+       match /blood_sugar_readings/{readingId} {
+         allow read: if isAuthenticated() && isOwner(resource.data.user_id);
+         allow create: if isAuthenticated() && isOwner(request.resource.data.user_id);
+         allow update, delete: if isAuthenticated() && isOwner(resource.data.user_id);
+       }
+     }
    }
    ```
+
+6. **Create Firestore Indexes**
+   Create these composite indexes in Firestore → Indexes:
+
+   **Index 1:**
+   - Collection: `blood_sugar_readings`
+   - Fields: `user_id` (Ascending), `timestamp` (Descending)
+
+   **Index 2:**
+   - Collection: `blood_sugar_readings`
+   - Fields: `user_id` (Ascending), `timestamp` (Ascending)
 
 ## Data Models
 
@@ -204,13 +200,30 @@ SweetSync follows modern Android development best practices with a clean, mainta
 ```kotlin
 @Serializable
 data class BloodSugarReading(
+    @DocumentId
     val id: String? = null,
-    val user_id: String,
-    val glucose_level: Double,
-    val timestamp: String,
+    
+    @PropertyName("user_id")
+    val user_id: String = "",
+    
+    @PropertyName("glucose_level")
+    val glucose_level: Double = 0.0,
+    
+    @PropertyName("timestamp")
+    val timestamp: Long = 0L, // Milliseconds since epoch
+    
+    @PropertyName("notes")
     val notes: String? = null,
-    val meal_context: MealContext
-)
+    
+    @PropertyName("meal_context")
+    val meal_context: String = MealContext.BEFORE_MEAL.name
+) {
+    constructor() : this(null, "", 0.0, 0L, null, MealContext.BEFORE_MEAL.name)
+    
+    fun getMealContextEnum(): MealContext {
+        return MealContext.valueOf(meal_context)
+    }
+}
 
 @Serializable
 enum class MealContext {
@@ -219,6 +232,19 @@ enum class MealContext {
     
     @SerialName("AFTER_MEAL")
     AFTER_MEAL
+}
+```
+
+### UserProfile
+```kotlin
+@Serializable
+data class UserProfile(
+    val id: String = "",
+    val email: String = "",
+    val name: String = "",
+    val created_at: Long = 0L
+) {
+    constructor() : this("", "", "", 0L)
 }
 ```
 
@@ -232,7 +258,7 @@ app/src/main/java/com/daemon/sweetsync/
 │   └── repository/               # Data repositories
 │       ├── AuthRepository.kt
 │       ├── BloodSugarRepository.kt
-│       └── SupabaseClient.kt
+│       └── FirebaseClient.kt
 ├── di/                          # Dependency injection
 │   └── DatabaseModule.kt
 ├── presentation/
@@ -250,17 +276,21 @@ app/src/main/java/com/daemon/sweetsync/
 │   ├── Color.kt
 │   ├── Theme.kt
 │   └── Type.kt
+├── utils/                       # Utility classes
+│   └── DateTimeUtils.kt
 ├── MainActivity.kt              # Main activity
 └── SweetSyncApplication.kt      # Application class
 ```
 
 ## Security Features
 
-- **Authentication**: Secure user login with Supabase Auth
-- **Data Privacy**: Row-level security ensures users only access their own data
-- **Encryption**: All data transmitted over HTTPS
-- **Local Storage**: Sensitive data cached securely on device
+- **Authentication**: Secure user login with Firebase Authentication
+- **Data Privacy**: Firestore Security Rules ensure users only access their own data
+- **Encryption**: All data transmitted over HTTPS/TLS
+- **Offline Security**: Data cached securely with Firebase offline persistence
 - **Session Management**: Automatic token refresh and secure logout
+- **Data Validation**: Server-side validation through security rules (glucose range, meal context)
+- **API Key Protection**: Restricted API keys prevent unauthorized access
 
 ## Testing
 
@@ -312,6 +342,15 @@ If you encounter any issues or have questions:
 3. **Include Device Info** - Android version, device model, app version
 4. **Attach Logs** - Include relevant error logs if possible
 
+## 📊 Version History
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 2.0.0 | October 2025 | Firebase migration with real-time sync & offline support |
+| 1.0.0 | June 2025 | Initial release with Supabase backend |
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+
 ## 📞 Contact
 
 - **Developer**: [daemon-001](https://github.com/daemon-001)
@@ -324,8 +363,4 @@ If you encounter any issues or have questions:
   <strong>Empowering health through technology</strong>
   
   <p>Help us improve SweetSync by contributing, reporting bugs, or suggesting new features!</p>
-  
-  [![GitHub stars](https://img.shields.io/github/stars/daemon-001/SweetSync?style=social)](https://github.com/daemon-001/SweetSync/stargazers)
-  [![GitHub forks](https://img.shields.io/github/forks/daemon-001/SweetSync?style=social)](https://github.com/daemon-001/SweetSync/network/members)
-  [![GitHub issues](https://img.shields.io/github/issues/daemon-001/SweetSync)](https://github.com/daemon-001/SweetSync/issues)
 </div>
