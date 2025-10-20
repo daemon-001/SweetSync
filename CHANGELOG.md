@@ -7,6 +7,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2] - 2025-10-20 - UI/UX Theme Consistency & Google Branding
+
+### ✨ Added
+
+#### Visual Assets
+- **Google Logo Vector Drawable** (`ic_google_logo.xml`)
+  - Official Google "G" logo with brand colors
+  - Multi-color SVG vector drawable (Blue, Green, Yellow, Red)
+  - 24dp × 24dp optimized for button integration
+  - Maintains Google brand guidelines
+
+#### Design Resources
+- Added comprehensive color palette matching HomeScreen theme
+- Defined PrimaryBlue (#64B5F6), SecondaryTeal (#4DB6AC)
+- Added BackgroundSurface, BackgroundElevated variants
+- Included TextHint, TextOnPrimary, TextOnSurface for better text hierarchy
+- Added CardBorder and CardShadow definitions
+
+### 🎨 Changed
+
+#### Theme Unification
+- **Login/Signup Screen** completely redesigned to match HomeScreen theme
+- Updated `AuthScreenColors` object with enhanced dark theme palette
+- Background colors: Changed from `#1A1A1A` to darker `#0F0F0F`
+- Card backgrounds: Updated from `#333333` to `#242424`
+- Primary action color: Changed from cyan (#4DD0E1) to softer teal (#4DB6AC)
+
+#### Button Styling
+- **Sign In/Sign Up buttons**:
+  - Container color: Teal cyan → SecondaryTeal (#4DB6AC)
+  - Text color: Black → White for better contrast
+  - Loading indicator: Now white color
+- **Continue with Google button**:
+  - Replaced emoji icon (🔍) with official Google logo
+  - Icon size: 20dp with `Color.Unspecified` tint (preserves multicolor)
+  - Enhanced visual consistency with Material Design 3
+- **Continue to Sign In button**: Updated to SecondaryTeal with white text
+- **Text buttons**: Updated link color to SecondaryTeal
+
+#### Text Field Improvements
+- **Focus border color**: Changed to SecondaryTeal
+- **Unfocused border opacity**: Reduced from 0.5 to 0.3 for subtler appearance
+- **Label colors**: Added focused/unfocused states for better UX
+- Improved cursor color consistency (SecondaryTeal)
+
+#### Visual Elements
+- **App icon gradient**: Updated from old teal to SecondaryTeal → PrimaryBlue
+- **Verification success gradient**: Refined color scheme with new palette
+- **Email icon**: Changed to SecondaryTeal
+- **Error dialog retry button**: Updated to SecondaryTeal with white text
+
+### 🔧 Technical Changes
+
+#### Files Modified
+- `AuthScreen.kt`
+  - Complete theme overhaul of AuthScreenColors object
+  - Added 15+ color definitions matching HomeScreen
+  - Updated all button colors and text field styling
+  - Integrated Google logo drawable
+  - Added `painterResource` import for logo loading
+  - Enhanced gradient definitions for visual consistency
+
+- `ic_google_logo.xml` (NEW)
+  - Vector drawable with Google's official brand colors
+  - Four-color path definition (Blue, Green, Yellow, Red)
+  - Scalable vector graphics for all screen densities
+
+### 🎯 User Experience
+
+#### Visual Consistency
+- Login/Signup screen now perfectly matches Home screen aesthetics
+- Cohesive dark theme throughout the entire app
+- Professional Google branding on authentication button
+- Improved visual hierarchy with refined color palette
+
+#### Design Language
+- Darker, more modern appearance
+- Better contrast ratios for accessibility
+- Consistent use of SecondaryTeal across interactive elements
+- Enhanced Material Design 3 implementation
+
+### 📱 Design Highlights
+
+#### Color Palette
+- **Primary**: PrimaryBlue (#64B5F6), PrimaryLight (#90CAF9)
+- **Secondary**: SecondaryTeal (#4DB6AC), SecondaryTealLight (#80CBC4)
+- **Backgrounds**: #0F0F0F (Primary), #1A1A1A (Secondary), #242424 (Card)
+- **Text**: #F5F5F5 (Primary), #B8B8B8 (Secondary), #808080 (Hint)
+- **Status**: SuccessGreen (#66BB6A), ErrorRed (#EF5350), WarningOrange (#FFB74D)
+
+---
+
 ## [2.0.1] - 2025-10-20 (02:26 AM IST) - Google Sign-In Integration
 
 ### ✨ Added

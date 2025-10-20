@@ -3,6 +3,7 @@ package com.daemon.sweetsync.di
 import com.daemon.sweetsync.data.repository.AuthRepository
 import com.daemon.sweetsync.data.repository.BloodSugarRepository
 import com.daemon.sweetsync.data.repository.FirebaseClient
+import com.google.android.gms.auth.api.identity.SignInClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,8 +22,8 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(firebaseClient: FirebaseClient): AuthRepository {
-        return AuthRepository(firebaseClient)
+    fun provideAuthRepository(firebaseClient: FirebaseClient, oneTapClient: SignInClient): AuthRepository {
+        return AuthRepository(firebaseClient, oneTapClient)
     }
 
     @Provides

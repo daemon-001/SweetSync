@@ -1,6 +1,5 @@
 package com.daemon.sweetsync.data.repository
 
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -25,7 +24,8 @@ data class UserProfile(
 
 @Singleton
 class AuthRepository @Inject constructor(
-    private val firebaseClient: FirebaseClient
+    private val firebaseClient: FirebaseClient,
+    private val oneTapClient: SignInClient
 ) {
     private val auth: FirebaseAuth = firebaseClient.auth
     private val firestore: FirebaseFirestore = firebaseClient.firestore
@@ -82,6 +82,7 @@ class AuthRepository @Inject constructor(
     suspend fun signOut(): Result<Unit> {
         return try {
             auth.signOut()
+            oneTapClient.signOut().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -133,13 +134,13 @@ class AuthRepository @Inject constructor(
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = auth.signInWithCredential(credential).await()
             val user = authResult.user ?: throw Exception("Google sign-in failed")
-            
+
             // Check if user profile exists in Firestore
             val profileDoc = firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
                 .document(user.uid)
                 .get()
                 .await()
-            
+
             // If profile doesn't exist, create one
             if (!profileDoc.exists()) {
                 val userProfile = UserProfile(
@@ -148,13 +149,13 @@ class AuthRepository @Inject constructor(
                     name = user.displayName ?: user.email?.substringBefore("@") ?: "User",
                     created_at = System.currentTimeMillis()
                 )
-                
+
                 firestore.collection(FirebaseClient.COLLECTION_USER_PROFILES)
                     .document(user.uid)
                     .set(userProfile)
                     .await()
             }
-            
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

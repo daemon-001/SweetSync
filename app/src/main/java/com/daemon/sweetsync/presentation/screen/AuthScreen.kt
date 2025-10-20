@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -37,18 +38,44 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 
-// Define colors matching the home screen theme
+// Enhanced Dark Theme Color Definitions (matching HomeScreen)
 object AuthScreenColors {
-    val BackgroundPrimary = Color(0xFF1A1A1A)
-    val BackgroundSecondary = Color(0xFF2A2A2A)
-    val CardBackground = Color(0xFF333333)
-    val TealPrimary = Color(0xFF4DD0E1)
-    val TealSecondary = Color(0xFF26C6DA)
-    val TextPrimary = Color.White
-    val TextSecondary = Color(0xFFB0B0B0)
-    val SuccessGreen = Color(0xFF4CAF50)
-    val ErrorRed = Color(0xFFFF5252)
-    val WarningOrange = Color(0xFFFF9800)
+    // Primary Colors (Dark Theme)
+    val PrimaryBlue = Color(0xFF64B5F6)
+    val PrimaryDark = Color(0xFF1565C0)
+    val PrimaryLight = Color(0xFF90CAF9)
+
+    // Secondary Colors
+    val SecondaryTeal = Color(0xFF4DB6AC)
+    val SecondaryTealDark = Color(0xFF00695C)
+    val SecondaryTealLight = Color(0xFF80CBC4)
+
+    // Dark Background Colors
+    val BackgroundPrimary = Color(0xFF0F0F0F)      // Darker main background
+    val BackgroundSecondary = Color(0xFF1A1A1A)    // Secondary dark background
+    val CardBackground = Color(0xFF242424)         // Enhanced card background
+    val BackgroundSurface = Color(0xFF1E1E1E)      // Surface background
+    val BackgroundElevated = Color(0xFF2A2A2A)     // Elevated card background
+
+    // Dark Theme Text Colors
+    val TextPrimary = Color(0xFFF5F5F5)            // Brighter primary text
+    val TextSecondary = Color(0xFFB8B8B8)          // Secondary text
+    val TextHint = Color(0xFF808080)               // Hint text
+    val TextOnPrimary = Color(0xFF000000)          // Text on primary colored backgrounds
+    val TextOnSurface = Color(0xFFF0F0F0)          // Text on surface
+
+    // Status Colors
+    val SuccessGreen = Color(0xFF66BB6A)
+    val WarningOrange = Color(0xFFFFB74D)
+    val ErrorRed = Color(0xFFEF5350)
+    val InfoBlue = Color(0xFF64B5F6)
+
+    // Card Border and Shadow
+    val CardBorder = Color(0xFF333333)
+    val CardShadow = Color(0x1A000000)
+
+    // Dark Theme Neutral Colors
+    val Grey300 = Color(0xFF2E2E2E)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,8 +182,8 @@ fun AuthScreen(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    AuthScreenColors.TealPrimary.copy(alpha = 0.1f),
-                                    AuthScreenColors.TealSecondary.copy(alpha = 0.05f)
+                                    AuthScreenColors.SecondaryTeal.copy(alpha = 0.15f),
+                                    AuthScreenColors.PrimaryBlue.copy(alpha = 0.05f)
                                 )
                             )
                         )
@@ -191,7 +218,7 @@ fun AuthScreen(
                             Icon(
                                 imageVector = Icons.Default.Email,
                                 contentDescription = "Email",
-                                tint = AuthScreenColors.TealPrimary,
+                                tint = AuthScreenColors.SecondaryTeal,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -227,8 +254,8 @@ fun AuthScreen(
                                 .fillMaxWidth()
                                 .height(56.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = AuthScreenColors.TealPrimary,
-                                contentColor = Color.Black
+                                containerColor = AuthScreenColors.SecondaryTeal,
+                                contentColor = Color.White
                             ),
                             shape = RoundedCornerShape(16.dp)
                         ) {
@@ -252,7 +279,7 @@ fun AuthScreen(
                             .clip(RoundedCornerShape(20.dp))
                             .background(
                                 brush = Brush.linearGradient(
-                                    colors = listOf(AuthScreenColors.TealPrimary, AuthScreenColors.TealSecondary)
+                                    colors = listOf(AuthScreenColors.SecondaryTeal, AuthScreenColors.PrimaryBlue)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -302,11 +329,13 @@ fun AuthScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = AuthScreenColors.TealPrimary,
-                                unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.5f),
+                                focusedBorderColor = AuthScreenColors.SecondaryTeal,
+                                unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.3f),
                                 focusedTextColor = AuthScreenColors.TextPrimary,
                                 unfocusedTextColor = AuthScreenColors.TextPrimary,
-                                cursorColor = AuthScreenColors.TealPrimary
+                                cursorColor = AuthScreenColors.SecondaryTeal,
+                                focusedLabelColor = AuthScreenColors.SecondaryTeal,
+                                unfocusedLabelColor = AuthScreenColors.TextSecondary
                             ),
                             shape = RoundedCornerShape(12.dp)
                         )
@@ -326,11 +355,13 @@ fun AuthScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AuthScreenColors.TealPrimary,
-                            unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.5f),
+                            focusedBorderColor = AuthScreenColors.SecondaryTeal,
+                            unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.3f),
                             focusedTextColor = AuthScreenColors.TextPrimary,
                             unfocusedTextColor = AuthScreenColors.TextPrimary,
-                            cursorColor = AuthScreenColors.TealPrimary
+                            cursorColor = AuthScreenColors.SecondaryTeal,
+                            focusedLabelColor = AuthScreenColors.SecondaryTeal,
+                            unfocusedLabelColor = AuthScreenColors.TextSecondary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -350,11 +381,13 @@ fun AuthScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AuthScreenColors.TealPrimary,
-                            unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.5f),
+                            focusedBorderColor = AuthScreenColors.SecondaryTeal,
+                            unfocusedBorderColor = AuthScreenColors.TextSecondary.copy(alpha = 0.3f),
                             focusedTextColor = AuthScreenColors.TextPrimary,
                             unfocusedTextColor = AuthScreenColors.TextPrimary,
-                            cursorColor = AuthScreenColors.TealPrimary
+                            cursorColor = AuthScreenColors.SecondaryTeal,
+                            focusedLabelColor = AuthScreenColors.SecondaryTeal,
+                            unfocusedLabelColor = AuthScreenColors.TextSecondary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -377,16 +410,16 @@ fun AuthScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AuthScreenColors.TealPrimary,
-                            contentColor = Color.Black,
-                            disabledContainerColor = AuthScreenColors.TealPrimary.copy(alpha = 0.5f)
+                            containerColor = AuthScreenColors.SecondaryTeal,
+                            contentColor = Color.White,
+                            disabledContainerColor = AuthScreenColors.SecondaryTeal.copy(alpha = 0.5f)
                         ),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = Color.Black,
+                                color = Color.White,
                                 strokeWidth = 2.dp
                             )
                         } else {
@@ -450,9 +483,11 @@ fun AuthScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "🔍",
-                                fontSize = 20.sp
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_google_logo),
+                                contentDescription = "Google Logo",
+                                modifier = Modifier.size(20.dp),
+                                tint = androidx.compose.ui.graphics.Color.Unspecified
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -480,7 +515,7 @@ fun AuthScreen(
                         Text(
                             if (isSignUp) "Already have an account? Sign In"
                             else "Don't have an account? Sign Up",
-                            color = AuthScreenColors.TealPrimary,
+                            color = AuthScreenColors.SecondaryTeal,
                             fontSize = 14.sp
                         )
                     }
@@ -586,7 +621,7 @@ private fun AuthErrorDialog(
                             .let { if (!showFullError) it.weight(1f) else it.fillMaxWidth() }
                             .clickable { onRetry() },
                         colors = CardDefaults.cardColors(
-                            containerColor = AuthScreenColors.TealPrimary
+                            containerColor = AuthScreenColors.SecondaryTeal
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -596,7 +631,7 @@ private fun AuthErrorDialog(
                         ) {
                             Text(
                                 "Retry",
-                                color = Color.Black,
+                                color = Color.White,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(16.dp)
                             )

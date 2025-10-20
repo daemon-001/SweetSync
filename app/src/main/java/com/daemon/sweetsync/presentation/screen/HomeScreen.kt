@@ -7,11 +7,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,14 +25,11 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.daemon.sweetsync.utils.DateTimeUtils
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
@@ -107,6 +100,8 @@ fun HomeScreen(
     val systemUiController = rememberSystemUiController()
     val useDarkIcons = false
     val listState = rememberLazyListState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     // SwipeRefresh state
     val swipeRefreshState = rememberSwipeRefreshState(
@@ -166,116 +161,146 @@ fun HomeScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.BackgroundPrimary)
-    ) {
-        // Status Bar Spacer
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsTopHeight(WindowInsets.statusBars)
-        )
-
-        // Dedicated Top Bar
-        DedicatedTopBar(
-            userName = authUiState.userProfile?.name
-                ?: bloodSugarViewModel.getCachedUserName()
-                ?: "SweetSync",
-            onNavigateToCharts = {
-                if (uiState.readings.isEmpty()) {
-                    showNoDataDialog = true
-                } else {
-                    onNavigateToCharts()
-                }
-            },
-            onSignOut = onSignOut
-        )
-
-        // Main Content
-        Box(modifier = Modifier.weight(1f)) {
-            SwipeRefresh(
-                state = swipeRefreshState,
-                onRefresh = {
-                    bloodSugarViewModel.refreshReadings()
-                    authViewModel.checkAuthStatus()
-                },
-                modifier = Modifier.fillMaxSize()
-            ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Header Section
-                    item {
-                        HeaderSectionCard(
-                            readingsCount = uiState.readings.size,
-                            isLoading = uiState.isLoading,
-                            onRefresh = {
-                                bloodSugarViewModel.refreshReadings()
-                                authViewModel.checkAuthStatus()
-                            }
-                        )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Spacer(Modifier.height(12.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    label = { Text("Profile") },
+                    selected = false,
+                    onClick = { /* TODO: Navigate to Profile */ }
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
+                    label = { Text("Logout") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onSignOut()
                     }
-
-                    // Stats Section
-                    if (uiState.readings.isNotEmpty()) {
-                        item {
-                            StatsCard(readings = uiState.readings)
-                        }
-                    }
-
-                    // Loading State
-                    if (uiState.isLoading && !uiState.isRefreshing) {
-                        item {
-                            LoadingCard()
-                        }
-                    }
-
-                    // Empty State
-                    else if (uiState.readings.isEmpty() && !uiState.isLoading) {
-                        item {
-                            EmptyStateCard(onAddClick = onNavigateToAdd)
-                        }
-                    }
-
-                    // Readings List
-                    else {
-                        items(uiState.readings) { reading ->
-                            EnhancedReadingCard(reading = reading)
-                        }
-                    }
-                }
+                )
             }
-
-            // FAB positioned at bottom right
-            Box(
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.BackgroundPrimary)
+        ) {
+            // Status Bar Spacer
+            Spacer(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                Card(
-                    modifier = Modifier.clickable { onNavigateToAdd() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = AppColors.SecondaryTeal
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.statusBars)
+            )
+
+            // Dedicated Top Bar
+            DedicatedTopBar(
+                userName = authUiState.userProfile?.name
+                    ?: bloodSugarViewModel.getCachedUserName()
+                    ?: "SweetSync",
+                onNavigateToCharts = {
+                    if (uiState.readings.isEmpty()) {
+                        showNoDataDialog = true
+                    } else {
+                        onNavigateToCharts()
+                    }
+                },
+                onMenuClick = {
+                    scope.launch {
+                        drawerState.apply {
+                            if (isClosed) open() else close()
+                        }
+                    }
+                }
+            )
+
+            // Main Content
+            Box(modifier = Modifier.weight(1f)) {
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = {
+                        bloodSugarViewModel.refreshReadings()
+                        authViewModel.checkAuthStatus()
+                    },
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Box(
-                        modifier = Modifier.padding(16.dp),
-                        contentAlignment = Alignment.Center
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Reading",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        // Header Section
+                        item {
+                            HeaderSectionCard(
+                                readingsCount = uiState.readings.size,
+                                isLoading = uiState.isLoading,
+                                onRefresh = {
+                                    bloodSugarViewModel.refreshReadings()
+                                    authViewModel.checkAuthStatus()
+                                }
+                            )
+                        }
+
+                        // Stats Section
+                        if (uiState.readings.isNotEmpty()) {
+                            item {
+                                StatsCard(readings = uiState.readings)
+                            }
+                        }
+
+                        // Loading State
+                        if (uiState.isLoading && !uiState.isRefreshing) {
+                            item {
+                                LoadingCard()
+                            }
+                        }
+
+                        // Empty State
+                        else if (uiState.readings.isEmpty() && !uiState.isLoading) {
+                            item {
+                                EmptyStateCard(onAddClick = onNavigateToAdd)
+                            }
+                        }
+
+                        // Readings List
+                        else {
+                            items(uiState.readings) { reading ->
+                                EnhancedReadingCard(reading = reading)
+                            }
+                        }
+                    }
+                }
+
+                // FAB positioned at bottom right
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Card(
+                        modifier = Modifier.clickable { onNavigateToAdd() },
+                        colors = CardDefaults.cardColors(
+                            containerColor = AppColors.SecondaryTeal
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Add Reading",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -316,7 +341,7 @@ fun HomeScreen(
 private fun DedicatedTopBar(
     userName: String,
     onNavigateToCharts: () -> Unit,
-    onSignOut: () -> Unit
+    onMenuClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth()
@@ -341,8 +366,16 @@ private fun DedicatedTopBar(
         ) {
             // User Info Section
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = AppColors.TextPrimary
+                    )
+                }
                 Column {
                     Text(
                         text = userName,
@@ -386,27 +419,6 @@ private fun DedicatedTopBar(
                             color = AppColors.SecondaryTeal,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
-                        )
-                    }
-                }
-
-                // Sign Out Button
-                Card(
-                    modifier = Modifier.clickable { onSignOut() },
-                    colors = CardDefaults.cardColors(
-                        containerColor = AppColors.ErrorRed.copy(alpha = 0.1f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier.padding(12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Sign Out",
-                            tint = AppColors.ErrorRed,
-                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
