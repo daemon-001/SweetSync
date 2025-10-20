@@ -524,8 +524,9 @@ Complete migration from Supabase to Firebase backend infrastructure.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 2.0.2 | 2025-10-20 | UI/UX Theme Consistency & Google signin bug fix |
 | 2.0.1 | 2025-10-20 | Google Sign-In integration with release signing |
-| 2.0.0 | 2025-10-19 | Firebase Migration - Complete backend rewrite |
+| 2.0_fs | 2025-10-19 | Firebase Migration - Complete backend rewrite |
 | 1.0.0 | 2025-06-09 | Initial release with Supabase backend |
 
 ---
