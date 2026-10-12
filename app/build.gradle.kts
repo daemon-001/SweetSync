@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sweetsync.app"
+    namespace = "com.daemon.sweetsync"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sweetsync.app"
+        applicationId = "com.daemon.sweetsync"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

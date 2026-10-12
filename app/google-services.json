@@ -1,41 +1,49 @@
 {
   "project_info": {
-    "project_number": "418483729551",
-    "project_id": "sweet-sync-app",
-    "storage_bucket": "sweet-sync-app.firebasestorage.app"
+    "project_number": "34704815243",
+    "project_id": "sweetsync-daemon",
+    "storage_bucket": "sweetsync-daemon.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:418483729551:android:2723222e5db08c25906cfa",
+        "mobilesdk_app_id": "1:34704815243:android:411f39ab163162c975508e",
         "android_client_info": {
-          "package_name": "com.sweetsync.app"
+          "package_name": "com.daemon.sweetsync"
         }
       },
       "oauth_client": [
         {
-          "client_id": "418483729551-722cfv7nh3vbia7fcbr8d1jsv61ut47v.apps.googleusercontent.com",
+          "client_id": "34704815243-c60cmfll0tpltnbud4p9m2rct998fgmo.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sweetsync.app",
+            "package_name": "com.daemon.sweetsync",
             "certificate_hash": "bb925bf7d8d4be17ea8c8c0dd7c68111a158c0ac"
           }
         },
         {
-          "client_id": "418483729551-1ct4c2cc72jr7sdeiro6k24ed11eqr4n.apps.googleusercontent.com",
+          "client_id": "34704815243-sph6aiq1qm8gastj30p345m96kna5kmm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.daemon.sweetsync",
+            "certificate_hash": "d615c745d4506c8afce7b8e74246f7c3576d9cfa"
+          }
+        },
+        {
+          "client_id": "34704815243-vdgk1gca4o3pi0knpkhngmnd3fs6ajpg.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBbDkB6oteqDEiFP5Bjcp4XceqWMLMWIh0"
+          "current_key": "AIzaSyDGIMppsRerWiWF_jxL3uwgTn74BPfpTQw"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "418483729551-1ct4c2cc72jr7sdeiro6k24ed11eqr4n.apps.googleusercontent.com",
+              "client_id": "34704815243-vdgk1gca4o3pi0knpkhngmnd3fs6ajpg.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
