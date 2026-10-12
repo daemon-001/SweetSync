@@ -1,26 +1,80 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ==============================================================================
+# Android & Jetpack Compose .gitignore
+# ==============================================================================
+
+# Built application files & packages
+*.apk
+*.aar
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Build directories & generated files
+build
+UI designs
+
+
+# Gradle files & caches
+.gradle/
+.gradletasknamecache
+gradle/gradle-daemon-jvm.properties
+
+# Local configuration files
 local.properties
-release-keystore.jks
 .DO_NOT_SYNC
 
-app/google-services.json
-firebase_setup
-serviceAccountKey.json
+# Proguard / R8
+proguard/
+app/proguard-rules.pro.bak
+
+# Android Studio & IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/shelf/
+.idea/appInsightsSettings.xml
+
+# Captures and profiling
+captures/
+.navigation/
+
+# Native builds
+.externalNativeBuild/
+.cxx/
+
+# Keystores & signing secrets
 *.jks
 *.keystore
+release-keystore.jks
+
+# Secrets & environment configurations
 .env
-.env.local
+.env.*
 secrets.properties
+serviceAccountKey.json
+firebase_setup
+
+# Firebase configuration (uncomment if keeping private)
+# app/google-services.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs & temp test captures
+*.log
+emulator_*.png

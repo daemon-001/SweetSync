@@ -3,19 +3,16 @@
   <component name="AppInsightsSettings">
     <option name="tabSettings">
       <map>
-        <entry key="Firebase Crashlytics">
+        <entry key="Android vitals">
           <value>
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.daemon.sweetsync" />
-                  <option name="mobileSdkAppId" value="1:251893639015:android:63840a6eb1fe890470f1c2" />
-                  <option name="projectId" value="sweetsync-9c4ba" />
-                  <option name="projectNumber" value="251893639015" />
+                  <option name="appId" value="com.daemon.expnesso" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
-              <option name="timeIntervalDays" value="THIRTY_DAYS" />
+              <option name="timeIntervalDays" value="SEVEN_DAYS" />
               <option name="visibilityType" value="ALL" />
             </InsightsFilterSettings>
           </value>

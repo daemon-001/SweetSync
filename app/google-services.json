@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "418483729551",
+    "project_id": "sweet-sync-app",
+    "storage_bucket": "sweet-sync-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418483729551:android:2723222e5db08c25906cfa",
+        "android_client_info": {
+          "package_name": "com.sweetsync.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "418483729551-722cfv7nh3vbia7fcbr8d1jsv61ut47v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sweetsync.app",
+            "certificate_hash": "bb925bf7d8d4be17ea8c8c0dd7c68111a158c0ac"
+          }
+        },
+        {
+          "client_id": "418483729551-1ct4c2cc72jr7sdeiro6k24ed11eqr4n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbDkB6oteqDEiFP5Bjcp4XceqWMLMWIh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "418483729551-1ct4c2cc72jr7sdeiro6k24ed11eqr4n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
